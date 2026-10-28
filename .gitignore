@@ -1,0 +1,28 @@
+# Python virtual environment
+.venv/
+venv/
+ENV/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# SQLite databases (contain personal chats & memories)
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables & local secrets
+.env
+.env.local
+
+# Operating System files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDE and Editor files
+.vscode/
+.idea/

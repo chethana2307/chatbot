@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="CODSOFT Rule-Based Chatbot with SQLite persistent memory and chat restoration. Built with Python, Flask, and SQLite.">
+    <title>CODSOFT Rule-Based Chatbot | SQLite Memory Restoration</title>
+    <!-- Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Main Chat Container -->
+        <main class="chat-card" role="main">
+            <!-- Header -->
+            <header class="chat-header">
+                <div class="bot-profile">
+                    <div class="bot-avatar-wrapper">
+                        <div class="bot-avatar" aria-hidden="true">🤖</div>
+                        <span class="status-dot" title="Bot is active and running locally" aria-label="Online"></span>
+                    </div>
+                    <div class="bot-meta">
+                        <h1 class="bot-title">Rule-Based Chatbot</h1>
+                        <p class="bot-subtitle">
+                            <span class="badge-tech">Python</span>
+                            <span class="badge-tech">Flask</span>
+                            <span class="badge-tech">SQLite</span>
+                            <span class="status-text">CODSOFT AI Internship &bull; Local Memory</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Header Actions Toolbar -->
+                <div class="header-actions">
+                    <button id="btn-reload-history" class="btn-icon" title="Reload Chat History from Database" aria-label="Reload History">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                        <span class="btn-label">Reload</span>
+                    </button>
+                    <button id="btn-open-memory" class="btn-icon btn-memory" title="View Saved Personal Memories" aria-label="View Memories">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.06 6.23 5 7.42V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.58c2.94-1.19 5-4.06 5-7.42a8 8 0 0 0-8-8z"/><path d="M9 13a3 3 0 0 0 6 0"/></svg>
+                        <span class="btn-label">Memory</span>
+                        <span id="memory-counter" class="counter-badge" title="Saved memory count">0</span>
+                    </button>
+                    <button id="btn-clear-chat" class="btn-icon btn-danger" title="Clear Chat History (Preserves Memory)" aria-label="Clear Chat History">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        <span class="btn-label">Clear</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Quick Suggestions Bar -->
+            <section class="quick-prompts-bar" aria-label="Quick Prompts">
+                <span class="quick-label">Try asking:</span>
+                <div class="chips-scroll">
+                    <button class="chip" data-prompt="Hello">Hello 👋</button>
+                    <button class="chip" data-prompt="Help">Help 💡</button>
+                    <button class="chip" data-prompt="What is your name?">Who are you? 🤖</button>
+                    <button class="chip" data-prompt="What time is it?">What time is it? ⏰</button>
+                    <button class="chip" data-prompt="My name is Alex">My name is Alex 👤</button>
+                    <button class="chip" data-prompt="What is my name?">What is my name? ❓</button>
+                    <button class="chip" data-prompt="My favorite color is emerald green">My favorite color is emerald green 🎨</button>
+                    <button class="chip" data-prompt="What do you remember about me?">Show memories 🧠</button>
+                </div>
+            </section>
+
+            <!-- Messages Window -->
+            <section id="chat-messages" class="messages-container" aria-live="polite" aria-label="Chat messages history">
+                <!-- Welcome Banner (shown if no messages exist yet) -->
+                <div id="welcome-banner" class="welcome-banner">
+                    <div class="welcome-icon">💬</div>
+                    <h3>Welcome to the Rule-Based Chatbot</h3>
+                    <p>I am a deterministic, rule-based chatbot designed for your internship project. I store all conversations and personal memories locally in an SQLite database.</p>
+                    <div class="feature-bullets">
+                        <div class="feature-item">🔒 Parameterized SQLite queries</div>
+                        <div class="feature-item">🔄 Restores history on refresh/reopen</div>
+                        <div class="feature-item">🧠 Persistent personal memory across sessions</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading Indicator -->
+            <div id="typing-indicator" class="typing-indicator hidden" aria-hidden="true">
+                <div class="typing-avatar">🤖</div>
+                <div class="typing-bubble">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+                <span class="typing-text">Assistant is processing...</span>
+            </div>
+
+            <!-- Input Area -->
+            <footer class="chat-input-area">
+                <form id="chat-form" class="chat-form" autocomplete="off">
+                    <div class="input-wrapper">
+                        <input
+                            type="text"
+                            id="message-input"
+                            class="message-input"
+                            placeholder="Type a message (e.g., 'Hello', 'My name is Mamatha', 'Help')..."
+                            maxlength="1000"
+                            required
+                            aria-label="Type your message here"
+                        />
+                        <span id="char-counter" class="char-counter">0/1000</span>
+                    </div>
+                    <button type="submit" id="send-btn" class="send-btn" aria-label="Send message">
+                        <span>Send</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Memory Management Modal -->
+    <div id="memory-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="modal-icon">🧠</span>
+                    <div>
+                        <h2 id="modal-title" class="modal-title">Saved Personal Memories</h2>
+                        <p class="modal-desc">Details remembered across sessions in the SQLite database.</p>
+                    </div>
+                </div>
+                <button id="btn-close-modal" class="modal-close" aria-label="Close memory modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <div id="memory-list" class="memory-list">
+                    <!-- Populated dynamically via JavaScript -->
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="session-info">
+                    <span class="session-label">Session ID:</span>
+                    <code id="display-session-id" class="session-code">Loading...</code>
+                </div>
+                <button id="btn-clear-all-memory" class="btn-modal-danger">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    Delete All Memories
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Toast Notification System -->
+    <div id="toast-container" class="toast-container" aria-live="assertive"></div>
+
+    <!-- Client Script -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
